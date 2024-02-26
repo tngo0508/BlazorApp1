@@ -1,4 +1,6 @@
-﻿@page "/counter"
+﻿@page "/counter/{Id:int?}"
+@page "/test"
+@using System.Net.Mime
 @rendermode InteractiveServer
 
 <PageTitle>Counter</PageTitle>
@@ -7,9 +9,88 @@
 
 <p role="status">Current count: @currentCount</p>
 
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+@* <button class="btn btn-primary" @onclick="IncrementCount">Click me</button> *@
+<button class="btn btn-primary" @onclick="IncrementCountAsync">Click me</button>
 
-@if (currentCount > 3)
+<div class="mt-3">
+    @* <p>instead of doing this, do the data-binding</p> *@
+    @* <input value=@differentText @oninput="OnChangeNew"> *@
+    <input @bind="differentText" @bind:event="oninput" @bind:after="Search">
+    <button @onclick="OnClear">Clear</button>
+    <p>@differentText</p>
+    <p>@searchResult</p>
+</div>
+
+<MyButton @onclick="IncrementCount" class="btn btn-success">My button1</MyButton>
+
+<p>Id: @Id</p>
+
+<input @oninput="OnChange"/>
+<p>@text</p>
+
+<div style="background-color: @backgroundColor" @onmouseover="MouseOver" @onmouseout="MouseOut">@divText</div>
+
+@code
 {
-    <p>win</p>
+    private int currentCount = 0;
+    private string text;
+    string searchResult = "";
+    private string differentText;
+
+    async Task Search() {
+        searchResult = "searching...";
+        await Task.Delay(2000);
+        searchResult = $"Found {Random.Shared.Next()} results!";
+    }
+
+    protected override void OnInitialized()
+    {
+        currentCount = Id;
+        base.OnInitialized();
+    }
+
+    [Parameter]
+    public int IncrementAmount { get; set; } = 2;
+    [Parameter] public int Id { get; set; }
+    private void IncrementCount()
+    {
+        // currentCount++;
+        currentCount += IncrementAmount;
+    }
+
+    private void IncrementCountAsync(MouseEventArgs arg)
+    {
+        Console.WriteLine("test");
+        Console.WriteLine(arg);
+        currentCount++;
+    }
+
+    private void OnChange(ChangeEventArgs obj)
+    {
+        if (obj.Value != null) text = (string)obj.Value!;
+    }
+
+    private void MouseOver(MouseEventArgs obj)
+    {
+        divText = "Mouse over";
+        backgroundColor = "red";
+    }
+
+    private string divText = "Mouse out";
+
+    private void MouseOut(MouseEventArgs obj)
+    {
+        divText = "Mouse out";
+        backgroundColor = "lightblue";
+    }
+
+    private string backgroundColor = "lightblue";
+    private void OnClear(MouseEventArgs e)
+    {
+        differentText = "";
+    }
+    private void OnChangeNew(ChangeEventArgs e)
+    {
+        differentText = (string)e.Value!;
+    }
 }
